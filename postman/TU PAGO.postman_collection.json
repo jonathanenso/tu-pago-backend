@@ -1,0 +1,340 @@
+{
+	"info": {
+		"_postman_id": "269300dd-5fd8-400d-9f0b-e741962cfc56",
+		"name": "TU PAGO",
+		"description": "Api services UNO",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Usuario",
+			"item": [
+				{
+					"name": "Registrar Usuario",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Jonathan\",\r\n    \"lastName\": \"Sosa\",\r\n    \"phone\": \"+584247774267\",\r\n    \"address\": \"La Vega, calle El Bucaral #38\",\r\n    \"city\": \"Ejido\",\r\n    \"state\": \"Merida\",\r\n    \"zip\": \"5111\",\r\n    \"birthday\": \"04-06-1992\",\r\n    \"document\": \"21184500\",\r\n    \"email\": \"jonathansosadev@gmail.com\",\r\n    \"password\": \"123456\",\r\n    \"role\": \"1\",\r\n    \"secureIps\": \"192.168.0.1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "confirmar Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"token\":\"de469c47ee2faabe3d59afe690fd1ac6:32eb8664555fbd8f987702a84ea08b675b97a65fea4622ead08f173e29654ffcc7ab8d20ef8f00fc8e151bcede4b2f7c71b5e310f9c1514c1facbd30071f2ed8\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/confirmEmail",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"confirmEmail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Usuario",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"jonathansosadev@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/authenticate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Subir imagen Usuario",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjRhMzA4MTYwMmI4NTNmNTBmNDM2YjciLCJpYXQiOjE1OTg2OTc2NjB9.8RY7t0IH_BhQuq62mWrRkFAJ3jORRFbpgDi8_1bHfBs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/C:/Users/Jonathan Sosa/Pictures/Uml-TuPago.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/upload-image/5f4a3081602b853f50f436b7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"upload-image",
+								"5f4a3081602b853f50f436b7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar User Data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjRhMzA4MTYwMmI4NTNmNTBmNDM2YjciLCJpYXQiOjE1OTg2OTc2NjB9.8RY7t0IH_BhQuq62mWrRkFAJ3jORRFbpgDi8_1bHfBs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"localCoin\": 2,\r\n    \"language\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/update-user/5f4a3081602b853f50f436b7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"update-user",
+								"5f4a3081602b853f50f436b7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Olvidar contraseña",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\":\"jonathansosadev@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/forgot",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"forgot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Restablecer contraseña",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"password\":\"123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/reset/595b570a770081f3d1e1ea6772deaadd87154140",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"reset",
+								"595b570a770081f3d1e1ea6772deaadd87154140"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener usuarios",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWM4ODE3NDhjODg5ODEzMzhlZWI5Y2MiLCJpYXQiOjE1OTA2Nzk1OTJ9.bLv_Rwv_S_9pV22BIB08JC-1Oi8nMEEpscRSR5cQX8w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validar token Pwd",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/reset/e247ba165093a82de25271790231873c4fcb7934",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"reset",
+								"e247ba165093a82de25271790231873c4fcb7934"
+							]
+						},
+						"description": "Validar token para restablecer contraseña"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Log Email",
+			"item": [
+				{
+					"name": "Grid Logs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWU1NGFjMTE0MTBiZTMxMTA1ODI0MmEiLCJpYXQiOjE1OTI0MjQ3NDl9.Dl_kp5B4n4u59keifYEVI_oGJFOrXZXYRVKpcU_EUsA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pageSize\": 10,\r\n    \"pageIndex\": 1,\r\n    \"sortBy\": { \"id\":\"createdDate\", \"desc\":false  },\r\n    \"globalFilter\":\"2020-06-10\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:4000/log/table-log-email",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"log",
+								"table-log-email"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

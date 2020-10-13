@@ -1,0 +1,8 @@
+﻿{
+    "connectionString": "mongodb://localhost/tupago",
+    "secret": "app-development-22052020",
+    "secretCrypto": "UNO-2205202021449647896544698754",
+    "urlClient":"http://localhost:8080/",
+    "dev":"1",
+    "email_dev":"jonathansosadev@gmail.com"
+}
