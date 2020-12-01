@@ -24,7 +24,7 @@ module.exports.SMTPTransport = nodemailer.createTransport({
     secure: true, // upgrade later with STARTTLS
     auth: {
         user: "sendtestemail@ensomarketingdigital.com",
-        pass: "Sendtestemail#123"
+        pass: "EnsoTest#2020"
     },
     tls: {
         // do not fail on invalid certs

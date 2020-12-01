@@ -6,7 +6,7 @@ const MailConfig = require('../_helpers/email-config');
 const hbs = require('nodemailer-express-handlebars');
 const smtpTransport = MailConfig.SMTPTransport;
 const emailType = require('../enums/email.type.enum');
-const emailFromOption = '"TU PAGO" <mailtest@hersymac.com>';
+const emailFromOption = '"TU PAGO" <sendtestemail@ensomarketingdigital.com>';
 let emailService = {
 
     /**

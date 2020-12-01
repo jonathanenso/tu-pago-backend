@@ -9,6 +9,8 @@ const Token = db.Token;
 const criptoHelper = require('../_helpers/crypto');
 const fs = require('fs');//archivos
 const path = require('path');//rutas
+const smsServices = require('../services/sms.service');
+const { findById } = require('../models/user.model');
 
 let userService = {
 
@@ -20,7 +22,7 @@ let userService = {
      */
     authenticate: async ({ email, password }) => {
         const user = await User.findOne({ email });
-        
+
         //Verificar cuenta verificada
         if (user && !user.isVerified)
             throw 'Tu cuenta no ha sido verificada';
@@ -68,7 +70,7 @@ let userService = {
         userParam.status = userStatus.status.ACTIVE;
 
         const user = new User(userParam);
- 
+
         // encriptar pass
         if (userParam.password) {
             user.hash = bcrypt.hashSync(userParam.password, 10);
@@ -78,7 +80,7 @@ let userService = {
 
         const userSaved = await user.save();
 
-        if(userSaved){
+        if (userSaved) {
             //Generar token user._id + @@ + user.email
             userToken = criptoHelper.encrypt(`${user._id}@@${user.email}`);
 
@@ -109,16 +111,16 @@ let userService = {
         decryptToken = criptoHelper.decrypt(userParam.token);
 
         //Obtener email del token para asegurar la confimación
-        let dataToken =  decryptToken.split('@@');
+        let dataToken = decryptToken.split('@@');
         let email = dataToken[1];
 
-        const user = await User.findOne({ _id: token.user, email: email});
+        const user = await User.findOne({ _id: token.user, email: email });
 
-        if (!user) 
+        if (!user)
             throw 'No pudimos encontrar un usuario para este token.';
-        
-        if (user.isVerified) 
-            throw 'Este usuario ya ha sido verificado.'; 
+
+        if (user.isVerified)
+            throw 'Este usuario ya ha sido verificado.';
 
         // Verify and save the user
         user.isVerified = true;
@@ -135,23 +137,23 @@ let userService = {
     forgotPassword: async (userParam) => {
 
         //Generar token
-        let token =  criptoHelper.randomBytes(20);
-    
+        let token = criptoHelper.randomBytes(20);
+
         //Buscar 
         const user = await User.findOne({ email: userParam.email });
 
-        if (!user) 
+        if (!user)
             throw 'No existe una cuenta con esa dirección de correo electrónico.';
-        
-        if (!user.isVerified) 
-            throw 'Este usuario no ha sido verificado.'; 
+
+        if (!user.isVerified)
+            throw 'Este usuario no ha sido verificado.';
 
         user.passwordResetToken = token;
-        user.passwordResetExpires = Date.now()+3600000; // 1 hora
+        user.passwordResetExpires = Date.now() + 3600000; // 1 hora
 
         await user.save();
 
-        return { user , token };
+        return { user, token };
 
     },
 
@@ -164,11 +166,11 @@ let userService = {
 
         const user = await User.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });
 
-        if (!user) 
+        if (!user)
             throw 'El token de restablecimiento de contraseña no es válido o ha expirado.';
-        
-        if (!user.isVerified) 
-            throw 'Este usuario no ha sido verificado.'; 
+
+        if (!user.isVerified)
+            throw 'Este usuario no ha sido verificado.';
 
     },
 
@@ -181,12 +183,12 @@ let userService = {
 
         const user = await User.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });
 
-        if (!user) 
+        if (!user)
             throw 'El token de restablecimiento de contraseña no es válido o ha expirado.';
-        
-        if (!user.isVerified) 
-            throw 'Este usuario no ha sido verificado.'; 
-        
+
+        if (!user.isVerified)
+            throw 'Este usuario no ha sido verificado.';
+
         //actualizar data
         user.hash = bcrypt.hashSync(userParam.password, 10);
         user.passwordResetToken = undefined;
@@ -196,7 +198,7 @@ let userService = {
 
         return user;
     },
-    
+
 
     /**
      * Función para actualizar usuario
@@ -230,18 +232,18 @@ let userService = {
     uploadFilePicture: async (id, image) => {
         //Validar que existe el archivo
         if (!image) {
-            throw 'No se ha seleccionado ningún archivo' 
+            throw 'No se ha seleccionado ningún archivo'
         }
 
         //obtener nombre del archivo cargado
         let fileName = image.filename;
-        
+
         const user = await User.findById(id);
-    
-        if (!user){
+
+        if (!user) {
             //eliminar archivo del server
             deleteFile(fileName);
-            throw 'Usuario no econtrado' 
+            throw 'Usuario no econtrado'
         }
 
         //obtener nombre de imagen original
@@ -252,7 +254,7 @@ let userService = {
 
         // Extensiones permitidas
         let validEstensions = ['png', 'jpg', 'jpeg'];
-        
+
         //validar correcta extension
         if (validEstensions.indexOf(extension) < 0) {
 
@@ -269,14 +271,14 @@ let userService = {
 
         await user.save((err, doc) => {
             if (err) console.error(err);
-            if(previousImage){
+            if (previousImage) {
                 //eliminar archivo anterior
                 deleteFile(previousImage);
             }
         });
 
         return user;
-        
+
     },
 
     /**
@@ -286,9 +288,181 @@ let userService = {
      */
     _delete: async (id) => {
         await User.findByIdAndRemove(id);
-    }
+    },
 
+    /**
+     * Función para verificar el status de las verificaciones
+     * 
+     * @param {string} id de usuario
+     */
+    seeVerificationsStatus: async (id) => {
+        // Consulta del usuario
+        const user = await User.findById(id);
+
+        // Preparacion de la respuesta
+        const status = {
+            isVerifiedEmail: user.isVerifiedEmail,
+            isVerifiedDoc: user.isVerifiedDoc,
+            isVerifiedPhone: user.isVerifiedPhone,
+        }
+
+        return status;
+    },
+
+    /**
+    * Función para verificar el status de las verificaciones
+    * 
+    * @param {string} id de usuario
+    */
+    requestPhoneVerification: async (userID) => {
+        let result = new Promise(async (resolve, reject) => {
+
+            // Eliminar codigos antiguos
+            let test = await Token.findOneAndRemove({ user: userID });
+
+            // Consulta del usuario
+            let user = await db.User.findById(userID);
+
+            // Crear codigo de verificación para el usuario
+            let code = Math.round(Math.random() * 999999);
+            const token = new Token({ user: userID, token: code });
+
+            // Guardar codigo
+            token.save();
+
+            // Preparacion del body del mensaje
+            let body = `Para verificar tu número de teléfono en la plataforma TU PAGO utiliza el código ${code}`
+
+            // Envio del mensaje
+            smsServices.sendMessage(userID, user.phone, body).then((status) => {
+                console.log('status', status);
+                resolve(status);
+            }).catch((error) => {
+                console.log('error', error);
+                reject(error);
+            });
+        });
+
+        return result;
+    },
+
+    /**
+    * Función para verificar el status de las verificaciones
+    * 
+    * @param {string} id de usuario
+    */
+    verifyPhoneNumber: async (userID, code) => {
+        let result = new Promise(async (resolve, reject) => {
+
+            // Se comprueba el codigo de verificacion
+            let token = await Token.findOneAndRemove({$and:[{ user: userID}, {token: code} ]});
+            console.log('token',token);
+
+            if (token) {
+                // Se cambia el staus de verificacion del telefono
+                User.findByIdAndUpdate(userID, { isVerifiedPhone: true }).then( () => {
+
+                    // Envio de la respuesta en caso exitoso
+                    resolve({
+                        status: true,
+                        message: 'Se verifico el teléfono correctamente'
+                    })
+                }).catch( (error) => {
+
+                    // Envio de la respuesta en caso de ERROR
+                    reject({
+                        status: false,
+                        message: 'ERROR al verificar el número de teléfono'
+                    })
+                });
+
+            } else {
+                // Envio de la respuesta en caso no exitoso
+                resolve({
+                    status: false,
+                    message: 'Código de verificación incorrecto'
+                })
+            }
+        });
+        return result;
+    },
+
+        /**
+     * Función para actualizar usuario
+     * 
+     * @param {id} id de usuario 
+     * @param {params} userParam
+     */
+    uploadDocumentPicture: async (id, image) => {
+        //Validar que existe el archivo
+        if (!image) {
+            throw 'No se ha seleccionado ningún archivo'
+        }
+
+        //obtener nombre del archivo cargado
+        let fileName = image.filename;
+
+        const user = await User.findById(id);
+
+        if (!user) {
+            //eliminar archivo del server
+            deleteFile(fileName);
+            throw 'Usuario no econtrado'
+        }
+
+        //obtener nombre de imagen original
+        let userImage = image.originalname;
+        let splitName = userImage.split('.');
+        //obtener extension del archivo
+        let extension = splitName[splitName.length - 1];
+
+        // Extensiones permitidas
+        let validEstensions = ['png', 'jpg', 'jpeg'];
+
+        //validar correcta extension
+        if (validEstensions.indexOf(extension) < 0) {
+
+            //eliminar archivo del server
+            deleteFile(fileName);
+            throw 'Las extensiones permitidas son ' + validEstensions.join(', ');
+        }
+
+        //Imagen anterior
+        var previousImage = user.documentImage;
+
+        //Asignar nuevo nombre
+        user.documentImage = fileName;
+
+        await user.save((err, doc) => {
+            if (err) console.error(err);
+            if (previousImage) {
+                //eliminar archivo anterior
+                deleteFile(previousImage);
+            }
+        });
+
+        return user;
+
+    },
+
+    /**
+     * Función para actualizar usuario
+     * 
+     * @param {id} id de usuario 
+     * @param {params} userParam
+     */
+    addAccount: async (id, account) => {
+        const user = await User.findById(id);
+        let aux = user.accounts.toObject();
+        let complete = aux.concat(account);
+
+        const userUpdate = await User.findByIdAndUpdate(id, { accounts: complete }, {new: true});
+
+        return userUpdate;
+    }
 }
+
+
 
 /**
  * Elimina un archivo cargado
@@ -296,10 +470,10 @@ let userService = {
  * @param {String} imageName 
  */
 function deleteFile(imageName) {
-    
+
     try {
         //obtener ruta de archivo
-        let pathImagen = path.resolve(__dirname, `../public/uploads/users/${ imageName }`);
+        let pathImagen = path.resolve(__dirname, `../public/uploads/users/${imageName}`);
 
         if (fs.existsSync(pathImagen)) {
             fs.unlinkSync(pathImagen);

@@ -2,6 +2,7 @@
 const router = express.Router();
 const userService = require('../services/user.service');
 const emailService = require('../services/email.service');
+const smsServices = require('../services/sms.service');
 const multer = require('multer');
 const crypto = require('crypto');
 const path = require('path');//rutas
@@ -18,6 +19,12 @@ router.post('/forgot', forgot);
 
 router.get('/reset/:token', reset);
 router.post('/reset/:token', restorePassword);
+router.get('/verifications-status/:id', seeVerificationsStatus);
+router.post('/send-sms', sendMessage);
+router.post('/request-phone-verification', requestPhoneVerification);
+router.post('/verify-phone', verifyPhoneNumber);
+router.post('/add-account/:id', addAccount);
+
 
 // storage user
 var storage = multer.diskStorage({
@@ -36,6 +43,7 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 router.post('/upload-image/:id', upload.single("avatar"), uploadImage);
+router.post('/upload-document/:id', upload.single("document"), uploadDocumentPicture);
 
 module.exports = router;
 
@@ -130,4 +138,40 @@ function _delete(req, res, next) {
     userService.delete(req.params.id)
         .then(() => res.json({}))
         .catch(err => next(err));
+}
+
+function seeVerificationsStatus(req, res, next) {
+    userService.seeVerificationsStatus(req.params.id)
+        .then((verifications) => res.json(verifications))
+        .catch(err => next(err));
+}
+
+function sendMessage(req, res, next) {
+    smsServices.sendMessage(req.body.userID, req.body.phoneNumber, req.body.body)
+        .then((status) => res.json(status))
+        .catch(err => next(err));
+}
+
+function requestPhoneVerification(req, res, next) {
+    userService.requestPhoneVerification(req.body.userID)
+        .then((status) => res.json(status))
+        .catch(err => next(err));
+}
+
+function verifyPhoneNumber(req, res, next) {
+    userService.verifyPhoneNumber(req.body.userID, req.body.code)
+        .then((status) => res.json(status))
+        .catch(err => next(err));
+}
+
+function uploadDocumentPicture(req, res, next){
+    userService.uploadDocumentPicture(req.params.id, req.file)
+    .then(user => user ? res.json(user) : res.sendStatus(404))
+    .catch(err => next(err));
+}
+
+function addAccount(req, res, next){
+    userService.addAccount(req.params.id, req.body)
+    .then(user => user ? res.json(user) : res.sendStatus(404))
+    .catch(err => next(err));
 }
