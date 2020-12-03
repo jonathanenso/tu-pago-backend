@@ -387,57 +387,65 @@ let userService = {
         return result;
     },
 
-        /**
-     * Función para actualizar usuario
+    /**
+     * Función para subir archivos
      * 
      * @param {id} id de usuario 
      * @param {params} userParam
      */
-    uploadDocumentPicture: async (id, image) => {
+    uploadDocumentPicture: async (id, images) => {
+
+        console.log(images)
+       
         //Validar que existe el archivo
-        if (!image) {
+        if ( images.length == 0 ) {
             throw 'No se ha seleccionado ningún archivo'
         }
-
-        //obtener nombre del archivo cargado
-        let fileName = image.filename;
 
         const user = await User.findById(id);
 
         if (!user) {
             //eliminar archivo del server
-            deleteFile(fileName);
+            deleteArrayImages(images);
             throw 'Usuario no econtrado'
         }
 
-        //obtener nombre de imagen original
-        let userImage = image.originalname;
-        let splitName = userImage.split('.');
-        //obtener extension del archivo
-        let extension = splitName[splitName.length - 1];
+        var documentsData=[];
 
-        // Extensiones permitidas
-        let validEstensions = ['png', 'jpg', 'jpeg'];
+        //Verificar extensiones de cada imagen
+        images.forEach( (file, index) => {
 
-        //validar correcta extension
-        if (validEstensions.indexOf(extension) < 0) {
+            //obtener nombre de imagen original
+            let userImage = file.filename;
+            let splitName = userImage.split('.');
+            //obtener extension del archivo
+            let extension = splitName[splitName.length - 1];
 
-            //eliminar archivo del server
-            deleteFile(fileName);
-            throw 'Las extensiones permitidas son ' + validEstensions.join(', ');
-        }
+            // Extensiones permitidas
+            let validEstensions = ['png', 'jpg', 'jpeg'];
+
+            //validar correcta extension
+            if (validEstensions.indexOf(extension) < 0) {
+
+                //Si hay alguna imagen sin estas extensiones se elimina todo
+                deleteArrayImages(images);
+                throw 'Las extensiones permitidas son ' + validEstensions.join(', ');
+            }
+            //anadir al array de imagenes
+            documentsData.push(userImage);
+        });
 
         //Imagen anterior
-        var previousImage = user.documentImage;
+        var previousDocuments = user.documentImages;
 
         //Asignar nuevo nombre
-        user.documentImage = fileName;
+        user.documentImages = documentsData;
 
         await user.save((err, doc) => {
             if (err) console.error(err);
-            if (previousImage) {
-                //eliminar archivo anterior
-                deleteFile(previousImage);
+            if (previousDocuments && previousDocuments.length> 0) {
+                //eliminar documentos anteriores
+                deletePreviousDocs(previousDocuments);
             }
         });
 
@@ -478,6 +486,50 @@ function deleteFile(imageName) {
         if (fs.existsSync(pathImagen)) {
             fs.unlinkSync(pathImagen);
         }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+/**
+ * Eliminar array de imagenes subidas, en caso de errores
+ * 
+ * @param {Array} images 
+ */
+function deleteArrayImages(images) {
+
+    try {
+        images.forEach( (file, index) => {
+            //obtener ruta de archivo
+            let pathImagen = path.resolve(__dirname, `../public/uploads/users/files/${file.filename}`);
+
+            if (fs.existsSync(pathImagen)) {
+                fs.unlinkSync(pathImagen);
+            }
+        });
+        
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+/**
+ * Eliminar array de imagenes anteriories en caso de nueva subida de archivos
+ * 
+ * @param {Array} images 
+ */
+function deletePreviousDocs(images) {
+
+    try {
+        images.forEach( (file, index) => {
+            //obtener ruta de archivo
+            let pathImagen = path.resolve(__dirname, `../public/uploads/users/files/${file}`);
+
+            if (fs.existsSync(pathImagen)) {
+                fs.unlinkSync(pathImagen);
+            }
+        });
+        
     } catch (error) {
         console.log(error)
     }

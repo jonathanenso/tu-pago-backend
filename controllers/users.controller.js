@@ -41,9 +41,24 @@ var storage = multer.diskStorage({
     }
 })
 
+// storage user files
+var storageDocuments = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'public/uploads/users/files')
+    },
+    filename: function (req, file, cb) {
+      // randomBytes generar nombre random
+      let customFileName = crypto.randomBytes(18).toString('hex')
+      // obtener extension
+      let fileExtension = path.extname(file.originalname).split('.')[1];
+      cb(null, customFileName + '.' + fileExtension) 
+    }
+})
+
 var upload = multer({ storage: storage });
+var uploadDocuments = multer({ storage: storageDocuments });
 router.post('/upload-image/:id', upload.single("avatar"), uploadImage);
-router.post('/upload-document/:id', upload.single("document"), uploadDocumentPicture);
+router.post('/upload-document/:id', uploadDocuments.array('documents',3), uploadDocumentPicture);
 
 module.exports = router;
 
@@ -165,7 +180,7 @@ function verifyPhoneNumber(req, res, next) {
 }
 
 function uploadDocumentPicture(req, res, next){
-    userService.uploadDocumentPicture(req.params.id, req.file)
+    userService.uploadDocumentPicture(req.params.id, req.files)
     .then(user => user ? res.json(user) : res.sendStatus(404))
     .catch(err => next(err));
 }

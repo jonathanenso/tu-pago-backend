@@ -16,7 +16,7 @@ const schema = new Schema({
     passwordResetToken: { type: String },
     passwordResetExpires: { type: Date },
     image: { type: String, default:null },
-    documentImage: { type: String, default:null },
+    documentImages: [{ type: String }],
     accounts: { type: Array, default:[] },
     role: { type: Number, required: true },
     status: { type: Number },
